@@ -1,7 +1,7 @@
-name: JAVA CI
+name: Java CI
 on: push
-env:
-  docker_username: ${{ secrets.DOCKER_USRENAME }}
+env: # Set the secret as an input
+  docker_username: ${{ secrets.DOCKER_USERNAME }}
   docker_password: ${{ secrets.DOCKER_PASSWORD }}
 jobs:
   Clone-down:
@@ -10,48 +10,48 @@ jobs:
     container: gradle:6-jdk11
     steps:
     - uses: actions/checkout@v2
-    - name: Upload repo
+    - name: Upload Repo
       uses: actions/upload-artifact@v2
       with:
-        name: Clone-Down-Build
+        name: code
         path: .
   Test:
     runs-on: ubuntu-latest
-    container: gradle:6-jdk11
     needs: Clone-down
+    container: gradle:6-jdk11
     steps:
-    - name: Download build
+    - name: Download code
       uses: actions/download-artifact@v2
       with:
-        name: Clone-Down-Build
-        path: .
-    - name: test with gradle
+        name: code
+        path: . 
+    - name: Test with Gradle
       run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
   Build:
     runs-on: ubuntu-latest
-    container: gradle:6-jdk11
     needs: Clone-down
+    container: gradle:6-jdk11
     steps:
-    - name: Download build
+    - name: Download code
       uses: actions/download-artifact@v2
       with:
-        name: Clone-Down-Build
+        name: code
         path: .
-    - name: build with gradle
-      run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
-    - name: Upload repo
+    - name: Build with Gradle
+      run: chmod +x ci/build-app.sh && ci/build-app.sh
+    - name: Upload Repo
       uses: actions/upload-artifact@v2
       with:
-        name: test&Build-Artifact
-        path: . 
+        name: code
+        path: .
   Docker-image:
     runs-on: ubuntu-latest
     needs: [Build,Test]
     steps:
-    - name: Download build
+    - name: Download code
       uses: actions/download-artifact@v1
       with:
-        name: test&Build-Artifact
+        name: code
         path: .
     - name: build docker
       run: chmod +x ci/build-docker.sh && export GIT_COMMIT="GA-$GITHUB_SHA" && ci/build-docker.sh
